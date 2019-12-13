@@ -1,0 +1,31 @@
+{{ extends "app.tmpl" }}
+
+{{ define "title" }}Home{{ end }}
+
+{{ define "content" }}
+<h2>Welcome to WikiGo!</h2>
+<br>
+<h3>Articles</h3>
+<ul>
+    {{range .Pages}}
+        <li><a href="/view/{{.Title}}">{{.Title}}</a></li>
+    {{end}}
+</ul>
+<hr>
+<h3>Create new article</h3>
+<div class="row">
+    <div class="col-md-6">
+        <div class="form-group">
+            <input class="form-control" type="text" id="title" placeholder="Title"></p>
+            <button class="btn btn-primary" id="create" onclick="create()">Create</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function create() {
+        var title = document.getElementById('title').value;
+        location.replace('/edit/' + title);
+    }
+</script>
+{{ end }}

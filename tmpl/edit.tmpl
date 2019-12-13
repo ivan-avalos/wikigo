@@ -1,0 +1,16 @@
+{{ extends "app.tmpl" }}
+
+{{ define "title" }}Edit{{ end }}
+
+{{ define "content" }}
+<h2>Editing {{.Title}}</h2>
+
+<form action="/save/{{.Title}}" method="POST">
+    <div class="form-group">
+        <textarea class="form-control" name="body" cols="80" rows="20">{{printf "%s" .Body}}</textarea>
+    </div>
+    <div class="form-group">
+        <input class="btn btn-primary" type="submit" value="Save">
+    </div>
+</form>
+{{ end }}
