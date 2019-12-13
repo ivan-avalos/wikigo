@@ -18,43 +18,92 @@
 package main
 
 import (
-	"io/ioutil"
-	"os"
-	"regexp"
+	"database/sql"
+	"log"
 )
 
+// Page represents a single article
 type Page struct {
+	ID    int
 	Title string
 	Body  []byte
 }
 
+// Pages represents a collection of articles
 type Pages struct {
 	Pages []Page
 }
 
 func (p *Page) save() error {
-	filename := "data/" + p.Title + ".txt"
-	return ioutil.WriteFile(filename, p.Body, 0600)
+	// Perform search
+	sel, err := db.Prepare("SELECT title FROM pages WHERE title = ?")
+	if err != nil {
+		return err
+	}
+	defer sel.Close()
+	var title string
+	err = sel.QueryRow(p.Title).Scan(&title)
+	if err != nil {
+		log.Print("at least got here with", err.Error())
+		if err == sql.ErrNoRows {
+			// Does not exist
+			ins, err := db.Prepare("INSERT INTO pages (title, body) VALUES(?, ?)")
+			if err != nil {
+				return err
+			}
+			defer ins.Close()
+			_, err = ins.Exec(p.Title, p.Body)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+
+	// Already exists
+	upd, err := db.Prepare("UPDATE pages SET body = ? WHERE title = ?")
+	if err != nil {
+		return err
+	}
+	defer upd.Close()
+	_, err = upd.Exec(p.Body, p.Title)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func loadPage(title string) (*Page, error) {
-	filename := "data/" + title + ".txt"
-	body, err := ioutil.ReadFile(filename)
+	sel, err := db.Prepare("SELECT * FROM pages WHERE title = ?")
 	if err != nil {
 		return nil, err
 	}
-	return &Page{Title: title, Body: body}, nil
+	defer sel.Close()
+
+	page := &Page{}
+	err = sel.QueryRow(title).Scan(&page.ID, &page.Title, &page.Body)
+	if err != nil {
+		return nil, err
+	}
+	return page, nil
 }
 
 func loadPages() (*Pages, error) {
-	files, err := ioutil.ReadDir("./data")
+	sel, err := db.Prepare("SELECT * FROM pages")
 	if err != nil {
 		return nil, err
 	}
+	defer sel.Close()
+
 	pages := Pages{Pages: make([]Page, 0)}
-	for _, f := range files {
-		name := regexp.MustCompile("^([a-zA-Z0-9]+).txt$").FindStringSubmatch(f.Name())[1]
-		page, err := loadPage(name)
+	var rows *sql.Rows
+	rows, err = sel.Query()
+	defer rows.Close()
+	for rows.Next() {
+		page := &Page{}
+		err = rows.Scan(&page.ID, &page.Title, &page.Body)
 		if err != nil {
 			return nil, err
 		}
@@ -64,5 +113,16 @@ func loadPages() (*Pages, error) {
 }
 
 func deletePage(title string) error {
-	return os.Remove("data/" + title + ".txt")
+	del, err := db.Prepare("DELETE FROM pages WHERE title = ?")
+	if err != nil {
+		return err
+	}
+	defer del.Close()
+
+	_, err = del.Exec(title)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -18,6 +18,7 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 	"regexp"
@@ -26,6 +27,7 @@ import (
 )
 
 // Global variables
+var db *sql.DB
 var xt *extemplate.Extemplate
 var validPath = regexp.MustCompile("^/(edit|save|view|delete)/([a-zA-Z0-9]+)$")
 
@@ -78,9 +80,23 @@ func deleteHandler(w http.ResponseWriter, r *http.Request, title string) {
 }
 
 func main() {
+	// Initialize MySQL DB
+	dbs := &DBSettings{
+		Username: "wikigo",
+		Password: "wikigo",
+		Database: "wikigo",
+		Host:     "localhost",
+		Port:     "3306",
+	}
+	var err error
+	db, err = dbs.initDb()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
 	// Parse templates
 	xt = extemplate.New()
-	err := xt.ParseDir("tmpl/", []string{".tmpl"})
+	err = xt.ParseDir("tmpl/", []string{".tmpl"})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
