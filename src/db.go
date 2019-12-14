@@ -16,7 +16,6 @@ type DBSettings struct {
 }
 
 func (dbs *DBSettings) initDb() (*gorm.DB, error) {
-	// user:password@/dbname?charset=utf8&parseTime=True&loc=Local
 	db, err := gorm.Open("mysql", dbs.Username+":"+dbs.Password+"@/"+dbs.Database+"?parseTime=true")
 	if err != nil {
 		return nil, err

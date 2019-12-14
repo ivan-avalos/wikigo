@@ -27,7 +27,7 @@ import (
 type Page struct {
 	gorm.Model
 	Title string
-	Body  []byte
+	Body  []byte `gorm:"type:text"`
 }
 
 // Pages represents a collection of articles
@@ -36,7 +36,6 @@ type Pages struct {
 }
 
 func (p *Page) save() error {
-	log.Print(p, ".savePage()")
 	var page Page
 	if err := db.First(&page, "title = ?", p.Title).Error; err != nil {
 		// Does not exist yet… create!
@@ -57,7 +56,6 @@ func (p *Page) save() error {
 }
 
 func loadPage(title string) (*Page, error) {
-	log.Print("loadPage(" + title + ")")
 	var page Page
 	if err := db.First(&page, "title = ?", title).Error; err != nil {
 		return nil, err
@@ -66,7 +64,6 @@ func loadPage(title string) (*Page, error) {
 }
 
 func loadPages() (*Pages, error) {
-	log.Print("loadPages()")
 	var pages []Page
 	if err := db.Find(&pages).Error; err != nil {
 		return nil, err

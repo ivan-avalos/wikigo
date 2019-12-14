@@ -23,6 +23,7 @@ import (
 	"regexp"
 
 	"github.com/dannyvankooten/extemplate"
+	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 )
 
@@ -32,7 +33,6 @@ var xt *extemplate.Extemplate
 var validPath = regexp.MustCompile("^/(edit|save|view|delete)/([a-zA-Z0-9]+)$")
 
 // Network handlers
-
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	pages, err := loadPages()
 	if err != nil {
@@ -42,7 +42,8 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplate(w, "home", pages)
 }
 
-func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
+func viewHandler(w http.ResponseWriter, r *http.Request) {
+	title := mux.Vars(r)["title"]
 	p, err := loadPage(title)
 	if err != nil {
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
@@ -51,7 +52,8 @@ func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 	renderTemplate(w, "view", p)
 }
 
-func editHandler(w http.ResponseWriter, r *http.Request, title string) {
+func editHandler(w http.ResponseWriter, r *http.Request) {
+	title := mux.Vars(r)["title"]
 	p, err := loadPage(title)
 	if err != nil {
 		p = &Page{Title: title}
@@ -59,7 +61,8 @@ func editHandler(w http.ResponseWriter, r *http.Request, title string) {
 	renderTemplate(w, "edit", p)
 }
 
-func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
+func saveHandler(w http.ResponseWriter, r *http.Request) {
+	title := mux.Vars(r)["title"]
 	body := r.FormValue("body")
 	p := &Page{Title: title, Body: []byte(body)}
 	err := p.save()
@@ -70,7 +73,8 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	http.Redirect(w, r, "/view/"+title, http.StatusFound)
 }
 
-func deleteHandler(w http.ResponseWriter, r *http.Request, title string) {
+func deleteHandler(w http.ResponseWriter, r *http.Request) {
+	title := mux.Vars(r)["title"]
 	err := deletePage(title)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -103,12 +107,14 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	// Handle HTTP requests
-	http.HandleFunc("/", homeHandler)
-	http.HandleFunc("/view/", makeHandler(viewHandler))
-	http.HandleFunc("/edit/", makeHandler(editHandler))
-	http.HandleFunc("/save/", makeHandler(saveHandler))
-	http.HandleFunc("/delete/", makeHandler(deleteHandler))
+	// Handle HTTP routes
+	r := mux.NewRouter()
+	r.HandleFunc("/", homeHandler)
+	r.HandleFunc("/view/{title:[a-zA-Z0-9]+}", viewHandler)
+	r.HandleFunc("/edit/{title:[a-zA-Z0-9]+}", editHandler)
+	r.HandleFunc("/save/{title:[a-zA-Z0-9]+}", saveHandler)
+	r.HandleFunc("/delete/{title:[a-zA-Z0-9]+}", deleteHandler)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	http.Handle("/", r)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
