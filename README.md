@@ -8,14 +8,14 @@ It's amazing how easy and convenient is working with Go! I'm planning to replace
 
 ## Install
 
-To run this project, download this, cd into the root and run the following commands:
+To run this project, download this, create a MySQL database called `gowiki`, with username `gowiki` and password `gowiki` and use port `3306` in `localhost` (or modify the hardcoded values in `wiki.go`), cd into the root and run the following commands:
 
 ```
 $ go build
 $ ./gowiki
 ```
 
-A web server will automatically start at `localhost:8080`, there's no need for extra configuration, although you might need to manually create the `/data` directory, if you see some error.
+A web server will automatically start at `localhost:8080`, there's no need for extra configuration (except for the MySQL database).
 
 ## Screenshots
 
