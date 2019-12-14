@@ -5,8 +5,8 @@
 {{ define "content" }}
 <h2>{{.Title}}</h2>
 <p>
-    <a class="btn btn-sm btn-warning" href="/edit/{{.Title}}">Edit</a>
-    <a class="btn btn-sm btn-danger" href="/delete/{{.Title}}">Delete</a>
+    <a class="btn btn-sm btn-light" href="/edit/{{.Title}}">✏️ Edit</a>
+    <a class="btn btn-sm btn-light" href="/delete/{{.Title}}">🚫 Delete</a>
 </p>
 <div>
     <div style="white-space: pre-line" wrap="soft">{{printf "%s" .Body}}</div>

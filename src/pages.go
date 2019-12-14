@@ -18,8 +18,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/jinzhu/gorm"
 )
 
@@ -68,7 +66,6 @@ func loadPages() (*Pages, error) {
 	if err := db.Find(&pages).Error; err != nil {
 		return nil, err
 	}
-	log.Print(pages)
 	return &Pages{Pages: pages}, nil
 }
 
