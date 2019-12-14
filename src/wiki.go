@@ -18,16 +18,16 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 	"regexp"
 
 	"github.com/dannyvankooten/extemplate"
+	"github.com/jinzhu/gorm"
 )
 
 // Global variables
-var db *sql.DB
+var db *gorm.DB
 var xt *extemplate.Extemplate
 var validPath = regexp.MustCompile("^/(edit|save|view|delete)/([a-zA-Z0-9]+)$")
 
@@ -93,6 +93,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+	defer db.Close()
+	db.AutoMigrate(&Page{})
 
 	// Parse templates
 	xt = extemplate.New()
